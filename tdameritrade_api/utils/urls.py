@@ -5,53 +5,70 @@
 ## URL Endpoints               ##
 ##-----------------------------##
 
+## Imports
+from typing import Optional
+
 ## Constants
 # -Base URLs
 base = "https://api.tdameritrade.com/v1/"
+base_account = base + "accounts"
+base_market = base + "marketdata/"
 # -Authorization Endpoints
-# [POST]
-auth_oauth = "oauth2/token"  # [POST]
-# -Account Endpoints
-account_get_by_id = "accounts/{}"  # [GET]
-account_get_by_ids = "accounts"    # [GET]
-# -Account: Transaction Endpoints
-transaction_get_by_id = "accounts/{}/transactions/{}"    # [GET]
-transaction_get_by_account = "accounts/{}/transactions"  # [GET]
-# -Account: Order Endpoints
-order_list = "orders"  # [GET]
-# [POST] | [GET]
-order_create = order_get_by_account = "accounts/{}/orders"
-# [PUT] | [DELETE] | [GET]
-order_replace = order_delete = order_get_by_id = "accounts/{}/orders/{}"
-# -Account: Saved Order Endpoints
-# [PUT] | [DELETE]  | [GET]
-so_replace = so_delete = so_get_by_id = "accounts/{}/watchlists/{}"
-# [POST] | [GET]
-so_create = so_get_by_account = "accounts/{}/savedorders"
-# -Account: Watchlist Endpoints
-watchlist_list = "accounts/watchlists"  # [GET]
-# [POST] | [GET]
-watchlist_create = watchlist_get_by_account = "accounts/{}/watchlists"
-# [PATCH] | [PUT] | [DELETE] | [GET]
-watchlist_update = watchlist_replace = watchlist_delete = watchlist_get_by_id =\
-    "accounts/{}/watchlists/{}"
+auth_oauth = base + "oauth2/token"  # [POST]
 # -Account: User Info & Preference Endpoints
-principals_list = "userprincipals"                             # [GET]
-subscription_list = "userprincipals/streamersubscriptionkeys"  # [GET]
-# [PUT] | [GET]
-preference_update = preference_get_by_id = "accounts/{}/preferences"
-# -Instrument Endpoints
-instrument_list = "instruments"          # [GET]
-instrument_get_by_id = "instruments/{}"  # [GET]
-# -Market Data: Hour Endpoints
-hours_list = "marketdata/hours"          # [GET]
-hours_get_by_id = "marketdata/{}/hours"  # [GET]
+preference_by_id = base_account + "/{}/preferences"  # [GET] | [PUT]
 # -Market Data: Mover Endpoints
-mover_get_by_id = "marketdata/{}/movers"  # [GET]
-# -Market Data: Quote Endpoints
-quote_get_by_id = "marketdata/{}/quotes"  # [GET]
-quote_get_by_ids = "marketdata/quotes"    # [GET]
+mover_by_id = base_market + "{}/movers"  # [GET]
 # -Market Data: Option Endpoints
-option_list = "marketdata/chains"  # [GET]
+option_list = base_market + "chains"  # [GET]
 # -Market Data: Historical Endpoints
-historical_get_by_id = "marketdata/{}/pricehistory"  # [GET]
+historical_by_id = base_market + "{}/pricehistory"  # [GET]
+
+
+## Functions
+def get_account_endpoint(_id: Optional[int] = None) -> str:
+    """Returns the account endpoint url depending on ID"""
+    return base_account + (f"/{_id}" if _id else "")
+
+
+def get_principals_endpoint(subscription: bool = False) -> str:
+    """Returns the principals endpoint url depending on subscription bool"""
+    return (base + "userprincipals"
+           + ("/streamersubscriptionkeys" if subscription else ""))
+
+
+def get_transaction_endpoint(id1: int, id2: Optional[int] = None) -> str:
+    """Returns the transaction endpoint url depending on IDs"""
+    return base_account + f"/{id1}/transactions" + (f"/{id2}" if id2 else "")
+
+
+def get_watchlist_endpoint(id1: Optional[int] = None, id2: Optional[int] = None) -> str:
+    """Returns the watchlist endpoint url depending on IDs"""
+    return (base_account + (f"/{id1}" if id1 else "")
+           + "/watchlists" + (f"/{id2}" if id2 else ""))
+
+
+def get_orders_endpoint(id1: Optional[int] = None, id2: Optional[int] = None) -> str:
+    """Returns the orders endpoint url depending on IDs"""
+    return ((base_account + f"/{id1}/" if id1 else base)
+           + "orders" + (f"/{id2}" if id2 else ""))
+
+
+def get_saved_orders_endpoint(id1: int, id2: Optional[int] = None) -> str:
+    """Returns the saved orders endpoint url depending on IDs"""
+    return base_account + f"/{id1}/savedorders" + (f"/{id2}" if id2 else "")
+
+
+def get_instrument_endpoint(_id: Optional[str] = None) -> str:
+    """Returns the instrument endpoint url depending on ID"""
+    return base + "instruments" + (f"/{_id}" if _id else "")
+
+
+def get_market_hours_endpoint(_id: Optional[str] = None) -> str:
+    """Returns the market hours endpoint url depending on ID"""
+    return base_market + (f"{_id}/" if _id else "") + "hours"
+
+
+def get_market_quote_endpoint(_id: Optional[str] = None) -> str:
+    """Returns the market quotes endpoint url depending on ID"""
+    return base_market + (f"{_id}/" if _id else "") + "quotes"
