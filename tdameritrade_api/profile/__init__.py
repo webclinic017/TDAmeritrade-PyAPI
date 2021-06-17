@@ -44,5 +44,14 @@ class Profile:
             self.id: str = _id + "@AMER.OAUTHAP"
             self.callback_url: tuple[str, int]
 
+        # -Instance Methods
+        def get_auth_url(self) -> str:
+            ''''''
+            return (
+                "https://auth.tdameritrade.com/auth?response_type=code&"
+                f"client_id={self.id}&redirect_uri={self.get_callback_url()}"
+            )
 
-## Body
+        def get_callback_url(self) -> str:
+            ''''''
+            return f"{self.callback_url[0]}:{self.callback_url[1]}"
