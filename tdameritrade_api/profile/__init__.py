@@ -21,6 +21,7 @@ class Profile:
     # -Constructor
     def __init__(self, _id: str) -> Profile:
         self.id: str = _id
+        self.session: Profile.Session = Profile.Session(_id)
 
     # -Dunder Methods
 
@@ -35,6 +36,13 @@ class Profile:
     # -Class Properties
 
     # -Sub-Classes
+    class Session:
+        """"""
+
+        # -Constructor
+        def __init__(self, _id: str) -> Profile.Session:
+            self.id: str = _id + "@AMER.OAUTHAP"
+            self.callback_url: tuple[str, int]
 
 
 ## Body
