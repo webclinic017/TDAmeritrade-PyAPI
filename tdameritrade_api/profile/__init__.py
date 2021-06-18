@@ -49,8 +49,9 @@ class Profile:
             }
         }
 
-    def to_file(self, file_path: Union[str, Path]) -> None:
+    async def to_file(self, file_path: Union[str, Path]) -> None:
         '''Saves the profile to a given file'''
+        # -TODO: Async file handling
         # -TODO: Binary file storage(?)
         _dict = self.to_dict()
         with open(file_path, 'w+') as f:
@@ -63,6 +64,7 @@ class Profile:
     ) -> Profile:
         '''Loads a profile from the given file. If refresh
         is enabled, will get a new refresh token'''
+        # -TODO: Async file handling
         # -TODO: Binary file storage(?)
         # -Load file
         with open(file_path, 'r') as f:
