@@ -36,14 +36,6 @@ class Profile:
 
     # -Instance Methods
 
-    # -Class Methods
-
-    # -Static Methods
-
-    # -Properties
-
-    # -Class Properties
-
     # -Sub-Classes
     class Session:
         """TDAmeritrade Session"""
@@ -134,7 +126,7 @@ class Profile:
         def _get_auth_dict(
             self, *, use_refresh: bool = True, offline: bool = True
         ) -> dict[str, str]:
-            ''''''
+            '''Returns a proper dict for auth requests'''
             _dict = {
                 'client_id': self.get_auth_id(),
                 'grant_type': "refresh_token" if use_refresh else "authorization_code"
