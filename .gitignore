@@ -6,3 +6,6 @@ __pycache__
 
 # Editor: Sublime Text 3
 *.sublime-*
+
+# Secret
+details.json
