@@ -14,9 +14,9 @@ base = "https://api.tdameritrade.com/v1/"
 base_account = base + "accounts"
 base_market = base + "marketdata/"
 # -Authorization Endpoints
-auth_oauth = base + "oauth2/token"  # [POST]
+auth_oauth = base + "oauth2/token"
 # -Market Data: Option Endpoints
-option_list = base_market + "chains"  # [GET]
+option_list = base_market + "chains"
 
 
 ## Functions
@@ -71,9 +71,9 @@ def get_market_quote_endpoint(
     """Returns the market quotes, historicals, or movers
     endpoint url depending on ID and historical/mover bool"""
     _str = base_market + (f"{_id}/" if _id else "")
-    if historical and _id:
+    if historical:
         return _str + "pricehistory"
-    elif mover and _id:
+    elif mover:
         return _str + "movers"
     else:
         return _str + "quotes"
