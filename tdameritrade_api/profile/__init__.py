@@ -18,11 +18,6 @@ import aiohttp
 
 from ..utils import urls
 
-## Constants
-
-
-## Functions
-
 
 ## Classes
 class Profile:
@@ -91,6 +86,8 @@ class Profile:
         # -Constructor
         def __init__(self, _id: str) -> Profile.Session:
             self.id: str = _id
+            self.auto_renew_access: bool = True
+            self.auto_renew_refresh: bool = False
             self.authenticated: bool = False
             self.callback_url: Optional[tuple[str, int]] = None
             self.access_expiration: Optional[datetime] = None
@@ -118,13 +115,19 @@ class Profile:
             '''Returns the callback url as a string'''
             return f"{self.callback_url[0]}:{self.callback_url[1]}"
 
-        def get_access_token_expired(self) -> bool:
+        def get_access_token_expired(self, delay: Optional[timedelta] = None) -> bool:
             '''Returns true if access token has expired'''
-            return datetime.now() >= self.access_expiration
+            d = datetime.now()
+            if delay:
+                return d >= self.access_expiration - delay
+            return d >= self.access_expiration
 
-        def get_refresh_token_expired(self) -> bool:
+        def get_refresh_token_expired(self, delay: Optional[timedelta] = None) -> bool:
             '''Returns true if refresh token has expired'''
-            return datetime.now() >= self.refresh_expiration
+            d = datetime.now()
+            if delay:
+                return d >= self.refresh_expiration - delay
+            return d >= self.refresh_expiration
 
         async def request_access_token(self, code: str, decode: bool = True) -> bool:
             '''Request access token from authorization code'''
