@@ -15,20 +15,15 @@ base_account = base + "accounts"
 base_market = base + "marketdata/"
 # -Authorization Endpoints
 auth_oauth = base + "oauth2/token"  # [POST]
-# -Account: User Info & Preference Endpoints
-preference_by_id = base_account + "/{}/preferences"  # [GET] | [PUT]
-# -Market Data: Mover Endpoints
-mover_by_id = base_market + "{}/movers"  # [GET]
 # -Market Data: Option Endpoints
 option_list = base_market + "chains"  # [GET]
-# -Market Data: Historical Endpoints
-historical_by_id = base_market + "{}/pricehistory"  # [GET]
 
 
 ## Functions
-def get_account_endpoint(_id: Optional[int] = None) -> str:
+def get_account_endpoint(_id: Optional[int] = None, preferences: bool = False) -> str:
     """Returns the account endpoint url depending on ID"""
-    return base_account + (f"/{_id}" if _id else "")
+    return (base_account + (f"/{_id}" if _id else "")
+           + ("/preferences" if preferences else ""))
 
 
 def get_principals_endpoint(subscription: bool = False) -> str:
@@ -69,6 +64,16 @@ def get_market_hours_endpoint(_id: Optional[str] = None) -> str:
     return base_market + (f"{_id}/" if _id else "") + "hours"
 
 
-def get_market_quote_endpoint(_id: Optional[str] = None) -> str:
-    """Returns the market quotes endpoint url depending on ID"""
-    return base_market + (f"{_id}/" if _id else "") + "quotes"
+def get_market_quote_endpoint(
+    _id: Optional[str] = None, *,
+    historical: bool = False, mover: bool = False
+) -> str:
+    """Returns the market quotes, historicals, or movers
+    endpoint url depending on ID and historical/mover bool"""
+    _str = base_market + (f"{_id}/" if _id else "")
+    if historical and _id:
+        return _str + "pricehistory"
+    elif mover and _id:
+        return _str + "movers"
+    else:
+        return _str + "quotes"
