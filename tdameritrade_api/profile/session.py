@@ -8,11 +8,10 @@
 
 ## Imports
 from __future__ import annotations
+from typing import NamedTuple
 
 ## Variables
-
-
-## Functions
+CallbackURL = NamedTuple("CallbackURL", [('url', str), ('port', int)])
 
 
 ## Classes
@@ -20,8 +19,13 @@ class Session:
     """TDAmeritrade Session"""
 
     # -Constructor
-    def __init__(self) -> Session:
-        pass
+    def __init__(
+        self, id_: str, callback_url: CallbackURL | tuple[str, int]
+    ) -> Session:
+        self.id: str = id_
+        if not isinstance(callback_url, CallbackURL):
+            callback_url = CallbackURL(*callback_url)
+        self.callback_url: CallbackURL = callback_url
 
     # -Dunder Methods
 
