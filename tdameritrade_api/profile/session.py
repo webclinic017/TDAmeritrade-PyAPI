@@ -8,10 +8,9 @@
 
 ## Imports
 from __future__ import annotations
-from typing import NamedTuple
+from ..utils.typing import CallbackURL
 
 ## Variables
-CallbackURL = NamedTuple("CallbackURL", [('url', str), ('port', int)])
 
 
 ## Classes
@@ -28,6 +27,8 @@ class Session:
         self.callback_url: CallbackURL = callback_url
 
     # -Dunder Methods
+    def __repr__(self) -> str:
+        return f"Session(id='{self.id}', callback_url={repr(self.callback_url)})"
 
     # -Instance Methods
 
