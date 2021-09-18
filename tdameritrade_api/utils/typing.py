@@ -15,9 +15,6 @@ class CallbackURL(NamedTuple):
     """Callback URL Type Hint"""
 
     # -Dunder Methods
-    def __repr__(self) -> str:
-        return f"CallbackURL(url='{self.url}', port={self.port})"
-
     def __str__(self) -> str:
         return f"{self.url}:{self.port}"
 
