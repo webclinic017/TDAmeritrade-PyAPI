@@ -10,8 +10,6 @@
 from __future__ import annotations
 from ..utils.typing import CallbackURL
 
-## Variables
-
 
 ## Classes
 class Session:
@@ -28,7 +26,8 @@ class Session:
 
     # -Dunder Methods
     def __repr__(self) -> str:
-        return f"Session(id='{self.id}', callback_url={repr(self.callback_url)})"
+        str_ = f"Session(id='{self.id}', callback_url={repr(self.callback_url)}"
+        return str_ + ")"
 
     # -Instance Methods
 
@@ -37,6 +36,16 @@ class Session:
     # -Static Methods
 
     # -Properties
+    @property
+    def authentication_id(self) -> str:
+        return self.id + "@AMER.OAUTHAP"
+
+    @property
+    def authentication_url(self) -> str:
+        return (
+            "https://auth.tdameritrade.com/auth?response_type=code&client_id="
+            f"{self.authentication_id}&redirect_uri={self.callback_url}"
+        )
 
     # -Class Properties
 
