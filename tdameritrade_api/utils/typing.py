@@ -16,11 +16,11 @@ class CallbackURL(NamedTuple):
 
     # -Dunder Methods
     def __repr__(self) -> str:
-        return f"(url='{self.url}', port={self.port})"
+        return f"CallbackURL(url='{self.url}', port={self.port})"
 
     def __str__(self) -> str:
         return f"{self.url}:{self.port}"
 
-    # -Class Properties
+    # -Properties
     url: str
     port: int
