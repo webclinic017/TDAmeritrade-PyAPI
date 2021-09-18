@@ -23,7 +23,7 @@ class Session:
     # -Constructor
     def __init__(
         self, id_: str, callback_url: CallbackURL | tuple[str, int], *,
-        loop: AbstractEventLoop | None = None, ainit: bool = True
+        loop: AbstractEventLoop | None = None
     ) -> Session:
         self.id: str = id_
         if not isinstance(callback_url, CallbackURL):
@@ -32,8 +32,7 @@ class Session:
         self._loop: AbstractEventLoop = loop if loop else asyncio.get_event_loop()
         self._aiosession: aiohttp.ClientSession | None = None
         self._ready: asyncio.Event = asyncio.Event()
-        if ainit:
-            self._loop.create_task(self.__ainit__())
+        self._loop.create_task(self.__ainit__())
 
     # -Dunder Methods
     async def __ainit__(self) -> None:
