@@ -8,6 +8,11 @@
 
 ## Imports
 from __future__ import annotations
+import asyncio
+from asyncio import AbstractEventLoop
+
+import aiohttp
+
 from ..utils.typing import CallbackURL
 
 
@@ -17,23 +22,41 @@ class Session:
 
     # -Constructor
     def __init__(
-        self, id_: str, callback_url: CallbackURL | tuple[str, int]
+        self, id_: str, callback_url: CallbackURL | tuple[str, int], *,
+        loop: AbstractEventLoop | None = None, ainit: bool = True
     ) -> Session:
         self.id: str = id_
         if not isinstance(callback_url, CallbackURL):
             callback_url = CallbackURL(*callback_url)
         self.callback_url: CallbackURL = callback_url
+        self._loop: AbstractEventLoop = loop if loop else asyncio.get_event_loop()
+        self._aiosession: aiohttp.ClientSession | None = None
+        self._ready: asyncio.Event = asyncio.Event()
+        if ainit:
+            self._loop.create_task(self.__ainit__())
 
     # -Dunder Methods
+    async def __ainit__(self) -> None:
+        self._aiosession = aiohttp.ClientSession(loop=self._loop, raise_for_status=True)
+        self._ready.set()
+
     def __repr__(self) -> str:
-        str_ = f"Session(id='{self.id}', callback_url={repr(self.callback_url)}"
-        return str_ + ")"
+        return (
+            f"Session(id='{self.id}', callback_url='{self.callback_url}', "
+            f"ready={self._ready.is_set()})"
+        )
 
-    # -Instance Methods
+    # -Instance Methods: Private
 
-    # -Class Methods
+    # -Instance Methods: Public
+    async def close(self) -> None:
+        if self._aiosession:
+            await self._aiosession.close()
+        self._ready.clear()
 
-    # -Static Methods
+    async def wait_ready(self) -> None:
+        """"""
+        await self._ready.wait()
 
     # -Properties
     @property
@@ -47,9 +70,9 @@ class Session:
             f"{self.authentication_id}&redirect_uri={self.callback_url}"
         )
 
-    # -Class Properties
-
-    # -Sub-Classes
+    @property
+    def ready(self) -> bool:
+        return self._ready.is_set()
 
 
 class WebSocket:
