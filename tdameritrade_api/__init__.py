@@ -5,14 +5,14 @@
 ##-------------------------------##
 
 ## Imports
-from .profile.session import Session, WebSocket
+from .profile import Profile, Session, WebSocket
 
 ## Constants
 __author__ = "Ryan Smith"
 __project__ = "TDAmeritrade PyAPI"
 __version__ = (1, 0, 0)
 __all__ = [
-    Session, WebSocket
+    Profile, Session, WebSocket
 ]
 
 
