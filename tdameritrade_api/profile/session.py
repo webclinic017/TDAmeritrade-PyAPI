@@ -33,11 +33,9 @@ class Session:
     def __repr__(self) -> str:
         return (
             f"Session(id='{self.id}', callback_url='{self.callback_url}', "
-            f"ready={self._ready.is_set()})"
         )
 
     # -Instance Methods: Private
-
     # -Instance Methods: Public
     async def close(self) -> None:
         if self._aiosession:
