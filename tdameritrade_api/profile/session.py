@@ -9,9 +9,8 @@
 ## Imports
 from __future__ import annotations
 import asyncio
-from asyncio import AbstractEventLoop
 
-import aiohttp
+from aiohttp import ClientSession
 
 from ..utils.typing import CallbackURL
 
@@ -22,23 +21,15 @@ class Session:
 
     # -Constructor
     def __init__(
-        self, id_: str, callback_url: CallbackURL | tuple[str, int], *,
-        loop: AbstractEventLoop | None = None
+        self, id_: str, callback_url: CallbackURL | tuple[str, int]
     ) -> Session:
         self.id: str = id_
         if not isinstance(callback_url, CallbackURL):
             callback_url = CallbackURL(*callback_url)
         self.callback_url: CallbackURL = callback_url
-        self._loop: AbstractEventLoop = loop if loop else asyncio.get_event_loop()
-        self._aiosession: aiohttp.ClientSession | None = None
-        self._ready: asyncio.Event = asyncio.Event()
-        self._loop.create_task(self.__ainit__())
+        self._aiosession: ClientSession = ClientSession(raise_for_status=True)
 
     # -Dunder Methods
-    async def __ainit__(self) -> None:
-        self._aiosession = aiohttp.ClientSession(loop=self._loop, raise_for_status=True)
-        self._ready.set()
-
     def __repr__(self) -> str:
         return (
             f"Session(id='{self.id}', callback_url='{self.callback_url}', "
@@ -51,11 +42,6 @@ class Session:
     async def close(self) -> None:
         if self._aiosession:
             await self._aiosession.close()
-        self._ready.clear()
-
-    async def wait_ready(self) -> None:
-        """"""
-        await self._ready.wait()
 
     # -Properties
     @property
@@ -68,10 +54,6 @@ class Session:
             "https://auth.tdameritrade.com/auth?response_type=code&client_id="
             f"{self.authentication_id}&redirect_uri={self.callback_url}"
         )
-
-    @property
-    def ready(self) -> bool:
-        return self._ready.is_set()
 
 
 class WebSocket:
