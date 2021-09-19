@@ -30,15 +30,16 @@ class Session:
             callback_url = CallbackURL(*callback_url)
         self.callback_url: CallbackURL = callback_url
         self.authenticated: bool = False
-        self._aiosession: ClientSession = ClientSession(raise_for_status=False)
         self.access_token_expiration: datetime | None = None
         self.refresh_token: str | None = None
         self.refresh_token_expiration: datetime | None = None
+        self._aiosession: ClientSession = ClientSession(raise_for_status=False)
 
     # -Dunder Methods
     def __repr__(self) -> str:
         return (
             f"Session(id='{self.id}', callback_url='{self.callback_url}', "
+            f"authenticated={self.authenticated})"
         )
 
     # -Instance Methods: Private
