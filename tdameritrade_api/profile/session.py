@@ -8,10 +8,12 @@
 
 ## Imports
 from __future__ import annotations
-import asyncio
+import urllib
+from datetime import datetime, timedelta, timezone
 
-from aiohttp import ClientSession
+from aiohttp import ClientResponse, ClientSession
 
+from ..utils import urls
 from ..utils.typing import CallbackURL
 
 
@@ -27,7 +29,11 @@ class Session:
         if not isinstance(callback_url, CallbackURL):
             callback_url = CallbackURL(*callback_url)
         self.callback_url: CallbackURL = callback_url
-        self._aiosession: ClientSession = ClientSession(raise_for_status=True)
+        self.authenticated: bool = False
+        self._aiosession: ClientSession = ClientSession(raise_for_status=False)
+        self.access_token_expiration: datetime | None = None
+        self.refresh_token: str | None = None
+        self.refresh_token_expiration: datetime | None = None
 
     # -Dunder Methods
     def __repr__(self) -> str:
@@ -36,10 +42,54 @@ class Session:
         )
 
     # -Instance Methods: Private
+    async def _authorization_update(self, res: ClientResponse) -> dict[str, str]:
+        '''Updates Session authorization fields'''
+        datetime_ = datetime.now(timezone.utc)
+        res_dict = await res.json()
+        self.authenticated = True
+        self._aiosession.headers.update({
+            'AUTHORIZATION': "Bearer " + res_dict['access_token']
+        })
+        self.access_token_expiration = datetime_ + timedelta(
+            seconds=res_dict['expires_in']
+        )
+        if 'refresh_token' in res_dict:
+            self.refresh_token = res_dict['refresh_token']
+            self.refresh_token_expiration = datetime_ + timedelta(
+                seconds=res_dict['refresh_token_expires_in']
+            )
+
     # -Instance Methods: Public
     async def close(self) -> None:
+        self.authenticated = False
         if self._aiosession:
             await self._aiosession.close()
+
+    async def renew_tokens(self, refresh_token: bool = False) -> None:
+        if 'AUTHORIZATION' in self._aiosession.headers:
+            del self._aiosession.headers['AUTHORIZATION']
+        payload = {
+            'client_id': self.authentication_id,
+            'grant_type': "refresh_token",
+            'refresh_token': self.refresh_token,
+        }
+        if refresh_token:
+            payload['access_type'] = "offline"
+        res = await self._aiosession.post(urls.auth_oauth, data=payload)
+        await self._authorization_update(res)
+
+    async def request_tokens(self, code: str, *, decode: bool = True) -> None:
+        res = await self._aiosession.post(
+            urls.auth_oauth,
+            data={
+                'client_id': self.authentication_id,
+                'grant_type': "authorization_code",
+                'access_type': "offline",
+                'redirect_uri': str(self.callback_url),
+                'code': urllib.parse.unquote(code) if decode else code,
+            }
+        )
+        await self._authorization_update(res)
 
     # -Properties
     @property
@@ -52,6 +102,22 @@ class Session:
             "https://auth.tdameritrade.com/auth?response_type=code&client_id="
             f"{self.authentication_id}&redirect_uri={self.callback_url}"
         )
+
+    @property
+    def access_token_duration(self) -> timedelta:
+        return self.access_token_expiration - datetime.now(timezone.utc)
+
+    @property
+    def access_token_expired(self) -> bool:
+        return datetime.now(timezone.utc) >= self.access_token_expiration
+
+    @property
+    def refresh_token_duration(self) -> timedelta:
+        return self.refresh_token_expiration - datetime.now(timezone.utc)
+
+    @property
+    def refresh_token_expired(self) -> bool:
+        return datetime.now(timezone.utc) >= self.refresh_token_expiration
 
 
 class WebSocket:
