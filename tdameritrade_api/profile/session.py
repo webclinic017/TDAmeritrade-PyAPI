@@ -8,7 +8,6 @@
 
 ## Imports
 from __future__ import annotations
-import urllib
 from datetime import datetime, timedelta, timezone
 
 from aiohttp import ClientResponse, ClientSession
@@ -33,7 +32,7 @@ class Session:
         self.access_token_expiration: datetime | None = None
         self.refresh_token: str | None = None
         self.refresh_token_expiration: datetime | None = None
-        self._aiosession: ClientSession = ClientSession(raise_for_status=False)
+        self._aiosession: ClientSession = ClientSession(raise_for_status=True)
 
     # -Dunder Methods
     def __repr__(self) -> str:
@@ -43,9 +42,10 @@ class Session:
         )
 
     # -Instance Methods: Private
-    async def _authorization_update(self, res: ClientResponse) -> dict[str, str]:
+    async def _authorization_update(self, payload: dict[str, str]) -> dict[str, str]:
         '''Updates Session authorization fields'''
         datetime_ = datetime.now(timezone.utc)
+        res = await self._aiosession.post(urls.auth_oauth, data=payload)
         res_dict = await res.json()
         self.authenticated = True
         self._aiosession.headers.update({
@@ -66,6 +66,10 @@ class Session:
         if self._aiosession:
             await self._aiosession.close()
 
+    async def get(self, url: str, *args, **kwargs) -> dict[str, str]:
+        res = await self._aiosession.request('GET', url, *args, **kwargs)
+        return await res.json()
+
     async def renew_tokens(self, refresh_token: bool = False) -> None:
         if 'AUTHORIZATION' in self._aiosession.headers:
             del self._aiosession.headers['AUTHORIZATION']
@@ -76,21 +80,18 @@ class Session:
         }
         if refresh_token:
             payload['access_type'] = "offline"
-        res = await self._aiosession.post(urls.auth_oauth, data=payload)
-        await self._authorization_update(res)
+        await self._authorization_update(payload)
 
     async def request_tokens(self, code: str, *, decode: bool = True) -> None:
-        res = await self._aiosession.post(
-            urls.auth_oauth,
-            data={
-                'client_id': self.authentication_id,
-                'grant_type': "authorization_code",
-                'access_type': "offline",
-                'redirect_uri': str(self.callback_url),
-                'code': urllib.parse.unquote(code) if decode else code,
-            }
-        )
-        await self._authorization_update(res)
+        from urllib.parse import unquote as urllib_unquote
+        payload = {
+            'client_id': self.authentication_id,
+            'grant_type': "authorization_code",
+            'access_type': "offline",
+            'redirect_uri': str(self.callback_url),
+            'code': urllib_unquote(code) if decode else code,
+        }
+        await self._authorization_update(payload)
 
     # -Properties
     @property
