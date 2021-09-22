@@ -8,9 +8,11 @@
 
 ## Imports
 from __future__ import annotations
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
-from aiohttp import ClientResponse, ClientSession
+from aiohttp import ClientSession, ClientWebSocketResponse
 
 from ..utils import urls
 from ..utils.typing import CallbackURL
@@ -66,6 +68,10 @@ class Session:
         if self._aiosession:
             await self._aiosession.close()
 
+    async def create_websocket(self, url: str) -> WebSocket:
+        ws = await self._aiosession.ws_connect(url)
+        return WebSocket(url, ws)
+
     async def get(self, url: str, *args, **kwargs) -> dict[str, str]:
         res = await self._aiosession.request('GET', url, *args, **kwargs)
         return await res.json()
@@ -83,13 +89,15 @@ class Session:
         await self._authorization_update(payload)
 
     async def request_tokens(self, code: str, *, decode: bool = True) -> None:
-        from urllib.parse import unquote as urllib_unquote
+        if decode:
+            from urllib.parse import unquote as urllib_unquote
+            code = urllib_unquote(code)
         payload = {
             'client_id': self.authentication_id,
             'grant_type': "authorization_code",
             'access_type': "offline",
             'redirect_uri': str(self.callback_url),
-            'code': urllib_unquote(code) if decode else code,
+            'code': code,
         }
         await self._authorization_update(payload)
 
@@ -126,19 +134,82 @@ class WebSocket:
     """TDAmeritrade WebSocket"""
 
     # -Constructor
-    def __init__(self) -> WebSocket:
-        pass
+    def __init__(self, url: str, websocket: ClientWebSocketResponse) -> WebSocket:
+        self.url: str = url
+        self.id: int | None = None
+        self.source: str | None = None
+        self.request_counter: int = 0
+        self.authenticated: bool = False
+        self._aiowebsocket: ClientWebSocketResponse = websocket
 
     # -Dunder Methods
+    def __repr__(self) -> str:
+        str_ = f"WebSocket(url={self.url}, authenticated={self.authenticated}"
+        return str_ + (f", id={self.id}, source={self.source})" if self.id else ")")
 
-    # -Instance Methods
+    # -Instance Methods: Private
+    def _request_make(
+        self, service: str, command: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        ''''''
+        dict_ = {
+            'service': service,
+            'command': command,
+            'account': self.id,
+            'source': self.source,
+            'requestid': self.request_counter
+        }
+        self.request_counter += 1
+        if params:
+            dict_['parameters'] = params
+        return dict_
+
+    async def _request_send(self, requests: list[dict, Any]) -> None:
+        ''''''
+        if not isinstance(requests, list):
+            requests = [requests]
+        await self._aiowebsocket.send_json({
+            "requests": requests
+        })
+
+    # -Instance Methods: Public
+    async def authorize(
+        self, id_: int, token: str, company: str, segment: str,
+        domain: str, group: str, access: str, datetime_: datetime,
+        app_id: str, acl: str
+    ) -> None:
+        from urllib.parse import urlencode
+        self.id = id_
+        self.source = app_id
+        request = self._request_make(
+            "ADMIN", "LOGIN", params={
+                'credential': urlencode({
+                    'userId': id_,
+                    'token': token,
+                    'company': company,
+                    'segment': segment,
+                    'cddomain': domain,
+                    'usergroup': group,
+                    'accesslevel': access,
+                    'authorized': "Y",
+                    'timestamp': int(datetime_.timestamp()) * 1000,
+                    'appid': app_id,
+                    'acl': acl,
+                }),
+                'token': token,
+                'version': WebSocket.get_version_string()
+            }
+        )
+        await self._request_send(request)
 
     # -Class Methods
 
     # -Static Methods
+    @staticmethod
+    def get_version_string() -> str:
+        return '.'.join(str(i) for i in WebSocket.version)
 
     # -Properties
 
     # -Class Properties
-
-    # -Sub-Classes
+    version = (1, 0)
