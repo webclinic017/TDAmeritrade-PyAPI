@@ -65,8 +65,7 @@ class Session:
     # -Instance Methods: Public
     async def close(self) -> None:
         self.authenticated = False
-        if self._aiosession:
-            await self._aiosession.close()
+        await self._aiosession.close()
 
     async def create_websocket(self, url: str) -> WebSocket:
         ws = await self._aiosession.ws_connect(url)
@@ -164,7 +163,7 @@ class WebSocket:
             dict_['parameters'] = params
         return dict_
 
-    async def _request_send(self, requests: list[dict, Any]) -> None:
+    async def _request_send(self, requests: dict[str, Any] | list[dict, Any]) -> None:
         ''''''
         if not isinstance(requests, list):
             requests = [requests]
@@ -201,6 +200,10 @@ class WebSocket:
             }
         )
         await self._request_send(request)
+
+    async def close(self) -> None:
+        self.authenticated = False
+        await self._aiowebsocket.close()
 
     # -Class Methods
 
