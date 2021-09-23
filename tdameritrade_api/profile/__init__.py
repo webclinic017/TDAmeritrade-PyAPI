@@ -9,12 +9,12 @@
 ## Imports
 from __future__ import annotations
 
-from .session import Session, WebSocket
 from ..utils import urls
+from ..session import Session
 
 ## Constants
 __all__ = [
-    "Profile", Session, WebSocket
+    "Profile"
 ]
 
 

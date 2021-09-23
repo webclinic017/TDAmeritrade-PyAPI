@@ -5,7 +5,9 @@
 ##-------------------------------##
 
 ## Imports
-from .profile import Profile, Session, WebSocket
+from .profile import Profile
+from .session import Session
+from .websocket import WebSocket
 
 ## Constants
 __author__ = "Ryan Smith"
