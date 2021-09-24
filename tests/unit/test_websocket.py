@@ -17,10 +17,10 @@ from tdameritrade_api.websocket import WebSocket
 class Test_WebSocket(unittest.IsolatedAsyncioTestCase):
 
     # -Instance Methods
-    async def asyncSetUp(self):
+    async def asyncSetUp(self) -> None:
         pass
 
-    async def asyncTearDown(self):
+    async def asyncTearDown(self) -> None:
         pass
 
 
