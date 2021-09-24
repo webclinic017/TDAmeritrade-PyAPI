@@ -11,7 +11,7 @@ from .websocket import WebSocket
 
 ## Constants
 __author__ = "Ryan Smith"
-__project__ = "TDAmeritrade PyAPI"
+__title__ = "TDAmeritrade PyAPI"
 __version__ = (1, 0, 0)
 __all__ = [
     Profile, Session, WebSocket
@@ -21,4 +21,4 @@ __all__ = [
 ## Functions
 def get_version_string() -> str:
     """Returns project version as a string"""
-    return ".".join([str(i) for i in __version__])
+    return '.'.join([str(i) for i in __version__])
