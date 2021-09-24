@@ -22,3 +22,8 @@ class Test_Session(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         pass
+
+
+## Body
+if __name__ == "__main__":
+    unittest.main()
