@@ -8,6 +8,7 @@
 
 ## Imports
 import unittest
+import unittest.mock
 
 from tdameritrade_api.websocket import WebSocket
 
