@@ -38,16 +38,15 @@ class Session:
     # -Dunder Methods
     def __repr__(self) -> str:
         return (
-            f"Session(id='{self.id}', callback_url='{self.callback_url}', "
+            f"Session(id='{self.id}', callback_url='{repr(self.callback_url)}', "
             f"authenticated={self.authenticated})"
         )
 
     # -Instance Methods: Private
-    async def _authorization_update(self, payload: dict[str, str]) -> dict[str, str]:
+    async def _authorization_update(self, payload: dict[str, str]) -> None:
         '''Updates Session authorization fields'''
         datetime_ = datetime.now(timezone.utc)
-        res = await self._aiosession.post(urls.auth_oauth, data=payload)
-        res_dict = await res.json()
+        res_dict = await self.post(urls.auth_oauth, data=payload)
         self.authenticated = True
         self._aiosession.headers.update({
             'AUTHORIZATION': "Bearer " + res_dict['access_token']
@@ -72,6 +71,10 @@ class Session:
 
     async def get(self, url: str, *args, **kwargs) -> dict[str, str]:
         res = await self._aiosession.request('GET', url, *args, **kwargs)
+        return await res.json()
+
+    async def post(self, url: str, *args, **kwargs) -> dict[str, str]:
+        res = await self._aiosession.request('POST', url, *args, **kwargs)
         return await res.json()
 
     async def renew_tokens(self, refresh_token: bool = False) -> None:
